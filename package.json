@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/masonJS/web-wallet#readme",
   "dependencies": {
+    "axios": "^0.20.0",
     "ethers": "^5.0.9"
   }
 }

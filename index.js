@@ -1,6 +1,6 @@
 const ethers = require('ethers');
 const { Wallet, Contract } = ethers;
-
+const { ETHGAS } = require('./api')
 
 function WebWallet(wallet, encryptedJsonWallet) {
   const ERC20_ABI = [
@@ -303,3 +303,34 @@ const restoreWalletFromPrivateKey = privateKey => new WebWallet(new Wallet(priva
 const restoreWalletFromEncryptedJSON = json => new WebWallet(Wallet.fromEncryptedJsonSync(json, password))
 
 const restoreWalletFromMnemonic = mnemonic => new WebWallet(Wallet.fromMnemonic(mnemonic))
+
+const DEFAULT_GAS_PRICE = ethers.utils.parseUnit('21', 'gwei')
+
+const DEFAULT_PRICE_STATS = {
+  safeLow: DEFAULT_GAS_PRICE.div(2).toHexString(),
+  average: DEFAULT_GAS_PRICE.toHexString(),
+  fast: DEFAULT_GAS_PRICE.mul(2).toHexString()
+}
+
+const getGasStationPrice = async (transactionSpeed = 'fast') => {
+  try {
+    const { data: gasPrice } = await ETHGAS.getGasPrice()
+    const gwei = new ethers.BigNumber.from(gasPrice[transactionSpeed]).div(10).toString()
+    const bigNumber = ethers.utils.parseUnits(gwei, 'gwei').toHexString()
+
+    return {
+      ether: ethers.utils.formatUnits(bigNumber, 'ether'),
+      gas: gwei
+    }
+
+  } catch (e) {
+    console.log(e)
+    const gwei = new ethers.BigNumber.from(DEFAULT_PRICE_STATS[transactionSpeed]).div(10).toString()
+    const bigNumber = ethers.utils.parseUnits(gwei, 'gwei').toHexString()
+
+    return {
+      ether: ethers.utils.formatUnits(bigNumber, 'ether'),
+      gas: gwei
+    }
+  }
+}
